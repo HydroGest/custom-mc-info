@@ -41,7 +41,7 @@ export function apply(ctx: Context) {
 
   ctx.command('mc')
    .action(async (_) => {
-          let returnMsg = "月之谷服务器 Java 版信息:";
+          let returnMsg = "月之谷 ~ Lunarine\n";
           const [address, portStr] = '100.121.162.102:25565'.split(':');
           const serverInfo = await mcpinger.ping({hostname: address, port: parseInt(portStr) });
           if (serverInfo) {
