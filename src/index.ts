@@ -48,7 +48,7 @@ export function apply(ctx: Context) {
               returnMsg += `服务器当前人数: ${serverInfo.players.online} \n`;
               if (serverInfo.sample) {
                 returnMsg += "当前在线玩家: "
-                sample.forEach((player) => {
+                serverInfo.sample.forEach((player) => {
                   returnMsg += player.name + " ";
                 });
                 returnMsg += "\n";
