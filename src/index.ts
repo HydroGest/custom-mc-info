@@ -41,7 +41,7 @@ export function apply(ctx: Context) {
   ctx.command('mc')
    .action(async (_) => {
           let returnMsg = "";
-          const [address, portStr] = 'frp-nut.top:50804'.split(':');
+          const [address, portStr] = '100.121.162.102:25565'.split(':');
           const port = parseInt(portStr, 10);
           const serverInfo = await mcpinger.ping({hostname: address, port: parseInt(portStr) });
           if (serverInfo) {
