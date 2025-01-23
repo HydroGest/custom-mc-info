@@ -29,6 +29,7 @@ export function apply(ctx: Context) {
               lowestLatency = data.ping;
               lowestLatencyDomain = domain;
           }
+          ctx.logger.info(`${domain}: ${data.ping} ms`);
       }
 
       if (lowestLatency === Infinity) {
@@ -40,7 +41,7 @@ export function apply(ctx: Context) {
 
   ctx.command('mc')
    .action(async (_) => {
-          let returnMsg = "";
+          let returnMsg = "月之谷服务器 Java 版信息:";
           const [address, portStr] = '100.121.162.102:25565'.split(':');
           const serverInfo = await mcpinger.ping({hostname: address, port: parseInt(portStr) });
           if (serverInfo) {
