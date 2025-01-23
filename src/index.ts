@@ -24,7 +24,7 @@ export function apply(ctx: Context) {
       for (const domain of domains) {
           const [address, portStr] = domain.split(':');
           
-          const data = await mcpinger.ping(() => {hostname: address, port: parseInt(portStr)});
+          const data = await mcpinger.ping({hostname: address, port: parseInt(portStr)});
           if (data.ping < lowestLatency) {
               lowestLatency = data.ping;
               lowestLatencyDomain = domain;
@@ -43,7 +43,7 @@ export function apply(ctx: Context) {
           let returnMsg = "";
           const [address, portStr] = 'frp-nut.top:50804'.split(':');
           const port = parseInt(portStr, 10);
-          const serverInfo = await mcpinger.ping(() => {hostname: address, port: parseInt(portStr) });
+          const serverInfo = await mcpinger.ping({hostname: address, port: parseInt(portStr) });
           if (serverInfo) {
               returnMsg += `服务器当前人数: ${serverInfo.players.online} \n`;
           }
