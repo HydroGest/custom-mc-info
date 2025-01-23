@@ -46,7 +46,7 @@ export function apply(ctx: Context) {
           const serverInfo = await mcpinger.ping({hostname: address, port: parseInt(portStr) });
           if (serverInfo) {
               returnMsg += `服务器当前人数: ${serverInfo.players.online} \n`;
-              if (sample) {
+              if (serverInfo.sample) {
                 returnMsg += "当前在线玩家: "
                 sample.forEach((player) => {
                   returnMsg += player.name + " ";
