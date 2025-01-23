@@ -25,7 +25,7 @@ export function apply(ctx: Context) {
           const [address, portStr] = domain.split(':');
           
           const data = await mcpinger.ping({hostname: address, port: parseInt(portStr)});
-          if (data.ping < lowestLatency) {
+          if (data.ping <= lowestLatency) {
               lowestLatency = data.ping;
               lowestLatencyDomain = domain;
           }
@@ -42,10 +42,16 @@ export function apply(ctx: Context) {
    .action(async (_) => {
           let returnMsg = "";
           const [address, portStr] = '100.121.162.102:25565'.split(':');
-          const port = parseInt(portStr, 10);
           const serverInfo = await mcpinger.ping({hostname: address, port: parseInt(portStr) });
           if (serverInfo) {
               returnMsg += `服务器当前人数: ${serverInfo.players.online} \n`;
+              if (sample) {
+                returnMsg += "当前在线玩家: "
+                sample.forEach((player) => {
+                  returnMsg += player.name + " ";
+                });
+                returnMsg += "\n";
+              }
           }
 
           const domains = [
@@ -57,7 +63,7 @@ export function apply(ctx: Context) {
 
           const result = await findLowestLatencyServer(domains);
           if (result) {
-              returnMsg += `最低延迟的服务器是 ${result.domain}，延迟为 ${result.latency} 毫秒`;
+              returnMsg += `当前最优线路: ${result.domain}, 延迟: ${result.latency} ms`;
           } else {
               returnMsg += '未能获取到任何服务器的有效延迟信息';
           }
