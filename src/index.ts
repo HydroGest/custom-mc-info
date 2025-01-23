@@ -41,7 +41,7 @@ export function apply(ctx: Context) {
   ctx.command('mc')
    .action(async (_) => {
           let returnMsg = "";
-          const [address, portStr] = 'frp-nut.top:50584'.split(':');
+          const [address, portStr] = 'frp-nut.top:50804'.split(':');
           const port = parseInt(portStr, 10);
           const serverInfo = await mcpinger.ping({hostname: address, port: parseInt(portStr) });
           if (serverInfo) {
@@ -52,7 +52,7 @@ export function apply(ctx: Context) {
               'frp-bag.top:15920',
               'frp-gym.top:50516',
               'frp-fee.top:50508',
-              'frp-nut.top:50584'
+              'frp-nut.top:50804'
           ];
 
           const result = await findLowestLatencyServer(domains);
