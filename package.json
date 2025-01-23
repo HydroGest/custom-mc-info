@@ -19,7 +19,6 @@
     "koishi": "^4.17.9"
   },
   "dependencies": {
-    "mcstatus": "^1.0.1",
     "minecraft-server-ping": "^0.3.1"
   }
 }
