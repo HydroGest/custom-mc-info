@@ -1,118 +1,135 @@
-import { Context, Schema, segment } from 'koishi';
-import { resolve } from 'path';
-import { Page } from "puppeteer-core";
-import { } from "koishi-plugin-puppeteer";
+import { Context, Schema, segment } from 'koishi'
+import { resolve } from 'path'
+import { Page } from 'puppeteer-core'
+import { } from 'koishi-plugin-puppeteer'
 
 const mcpinger = require('minecraft-server-ping')
- 
-export const inject = ['puppeteer']
 
-export const name = 'custom-mc-info';
+export const inject = ['puppeteer']
+export const name = 'custom-mc-info'
 
 export interface Config {
-    main_address: string;
-    sub_address: string[];
-    enable_image: boolean;
+  main_address: string
+  sub_address: string[]
+  enable_image: boolean
+  timeout?: number
 }
 
 export const Config: Schema<Config> = Schema.object({
-    main_address: Schema.string().default("100.121.162.102:25565"),
-    sub_address: Schema.array(Schema.string()).default([
-        'frp-bag.top:15920',
-        'frp-gym.top:50516',
-        'frp-fee.top:50508',
-        'frp-nut.top:50804',
-        'frp-all.top:14159'
-    ]),
-    enable_image: Schema.boolean().default(false)
-});
+  main_address: Schema.string().default("100.121.162.102:25565"),
+  sub_address: Schema.array(Schema.string()).default([
+    'frp-bag.top:15920',
+    'frp-gym.top:50516',
+    'frp-fee.top:50508',
+    'frp-nut.top:50804',
+    'frp-all.top:14159'
+  ]),
+  enable_image: Schema.boolean().default(false),
+  timeout: Schema.number().default(5000)
+})
 
 export function apply(ctx: Context, config: Config) {
+  // 保持原有 pageData 结构
+  interface PageData {
+    players: number
+    bestAddress: string
+    bestPing?: number
+    ping: { address: string; ping: number }[]
+  }
 
-    let pageData: {
-        players: number,
-        bestAddress: string,
-        bestPing?: number,
-        ping: { address: string, ping: number }[]
-    } = {
-        players: 0,
-        bestAddress: "",
-        ping: []
+  // 封装服务器测试逻辑
+  async function testServers(mainAddress: string, subAddresses: string[]): Promise<PageData> {
+    const pageData: PageData = {
+      players: 0,
+      bestAddress: "",
+      ping: []
     }
 
-  // 此函数用于找出延迟最低的服务器
-  async function findLowestLatencyServer(domains: string[], pageData: {address:string, ping:number}[]): Promise<{ domain: string; latency: number } | null> {
-      if (domains.length === 0) {
-          return null;
-      }
+    try {
+      // 测试主服务器
+      const [mainHost, mainPort] = mainAddress.split(':')
+      const mainInfo = await mcpinger.ping({
+        hostname: mainHost,
+        port: parseInt(mainPort),
+        timeout: config.timeout
+      })
+      pageData.players = mainInfo.players.online
+    } catch (error) {
+      ctx.logger.warn('主服务器测试失败:', error)
+    }
 
-      let lowestLatency = Infinity;
-      let lowestLatencyDomain = '';
-      pageData = [];
-      // 遍历所有域名，测试它们的延迟
-      for (const domain of domains) {
-          const [address, portStr] = domain.split(':');
-          
-          const data = await mcpinger.ping({hostname: address, port: parseInt(portStr)});
-          if (data.ping <= lowestLatency) {
-              lowestLatency = data.ping;
-              lowestLatencyDomain = domain;
-          }
-          ctx.logger.info(`${domain}: ${data.ping} ms`);
-          pageData.push({
-              address: domain,
-              ping: data.ping
-          })
+    // 并行测试子服务器
+    const subPromises = subAddresses.map(async (address) => {
+      try {
+        const [host, port] = address.split(':')
+        const start = Date.now()
+        await mcpinger.ping({
+          hostname: host,
+          port: parseInt(port),
+          timeout: config.timeout
+        })
+        const latency = Date.now() - start
+        return { address, ping: latency }
+      } catch (error) {
+        return { address, ping: Infinity }
       }
+    })
 
-      if (lowestLatency === Infinity) {
-          return null;
-      }
+    // 处理子服务器结果
+    const subResults = await Promise.all(subPromises)
+    pageData.ping = subResults.filter(r => r.ping < Infinity)
+    
+    // 找出最佳服务器
+    if (pageData.ping.length > 0) {
+      const best = pageData.ping.reduce((a, b) => a.ping < b.ping ? a : b)
+      pageData.bestAddress = best.address
+      pageData.bestPing = best.ping
+    }
 
-      return { domain: lowestLatencyDomain, latency: lowestLatency };
+    return pageData
+  }
+
+  // 生成图片（保持原有格式）
+  async function generateImage(pageData: PageData): Promise<segment> {
+    let page: Page
+    try {
+      page = await ctx.puppeteer.page()
+      await page.setViewport({ width: 582, height: 300 })
+      await page.goto(`file:///${resolve(__dirname, "../statics/template.html")}`)
+      await page.waitForNetworkIdle()
+      await page.evaluate(`action(${JSON.stringify(pageData)})`)
+      
+      const element = await page.$("body")
+      return segment.image(
+        await element.screenshot({ encoding: "binary" }),
+        "image/png"
+      )
+    } finally {
+      if (page && !page.isClosed()) await page.close()
+    }
   }
 
   ctx.command('mc')
-   .action(async (_) => {
-       let returnMsg = "月之谷 ~ Lunarine\n";
-          const [address, portStr] = config.main_address.split(':');
-          const serverInfo = await mcpinger.ping({hostname: address, port: parseInt(portStr) });
-          if (serverInfo) {
-              returnMsg += `服务器当前人数: ${serverInfo.players.online} \n`;
-              pageData.players = serverInfo.players.online;
-              if (serverInfo.sample) {
-                returnMsg += "当前在线玩家: "
-                serverInfo.sample.forEach((player) => {
-                  returnMsg += player.name + " ";
-                });
-                returnMsg += "\n";
-              }
-          }
+    .action(async () => {
+      try {
+        // 获取最新数据（每次都是新实例）
+        const pageData = await testServers(config.main_address, config.sub_address)
 
-          const result = await findLowestLatencyServer(config.sub_address, pageData.ping);
-       if (result) {
-           pageData.bestAddress = result.domain;
-           pageData.bestPing = result.latency;
-              returnMsg += `当前最优线路: ${result.domain}, 延迟: ${result.latency} ms`;
-          } else {
-              returnMsg += '未能获取到任何服务器的有效延迟信息';
-          }
+        // 生成响应内容（保持原有格式）
+        if (config.enable_image) {
+          return await generateImage(pageData)
+        }
 
-       if (config.enable_image) {
-            let page: Page = await ctx.puppeteer.page();
-            await page.setViewport({ width: 582, height: 300});
-            await page.goto(`file:///${resolve(__dirname, "../statics/template.html")}`)
-            await page.waitForNetworkIdle();
-            await page.evaluate(`action(\`${JSON.stringify(pageData)}\`)`);
-           const element = await page.$("body");
-           console.log(pageData);
-            return (
-                segment.image(await element.screenshot({
-                    encoding: "binary"
-                }), "image/png")
-            );
-          }
-          
-          return returnMsg;
-      });
+        let message = '月之谷 ~ Lunarine\n'
+        message += `服务器当前人数: ${pageData.players}\n`
+        message += `当前最优线路: ${pageData.bestAddress || '无'}`
+        if (pageData.bestPing) {
+          message += `, 延迟: ${pageData.bestPing}ms`
+        }
+        return message
+      } catch (error) {
+        ctx.logger.error('命令执行失败:', error)
+        return '服务器状态获取失败'
+      }
+    })
 }
