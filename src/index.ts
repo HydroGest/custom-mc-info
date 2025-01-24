@@ -156,8 +156,7 @@ export function apply(ctx: Context, config: Config) {
           timeout: config.timeout 
         })
 
-        await page.waitForTimeout(5000);
-        
+        await new Promise(r => setTimeout(r, 5000));        
         const mapElement = await page.$('body')
         const screenshot = await mapElement.screenshot({ 
           encoding: 'binary',
