@@ -62,14 +62,12 @@ export function apply(ctx: Context, config: Config) {
     const subPromises = subAddresses.map(async (address) => {
       try {
         const [host, port] = address.split(':')
-        const start = Date.now()
-        await mcpinger.ping({
+        const subInfo = await mcpinger.ping({
           hostname: host,
           port: parseInt(port),
           timeout: config.timeout
         })
-        const latency = Date.now() - start
-        return { address, ping: latency }
+        return { address, ping:  subInfo.ping}
       } catch (error) {
         return { address, ping: Infinity }
       }
