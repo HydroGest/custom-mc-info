@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            background-image: url('background.png');
+            background-size: cover;
+            font-family: 'unifont'
+        }
+
+        .container {
+            margin: 10px;
+        }
+
+        @font-face {
+            font-family: 'unifont';
+            src: url('unifont-16.0.02.otf') format('opentype');
+        }
+
+        h1 {
+            display: flex;
+            justify-content: space-between;
+        }
+        h3 {
+            color: rgb(0, 213, 255);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1><span>月之谷 ~ Lunarine</span><span>当前人数：<span style="color: greenyellow;" id="players">3</span></h1>
+        <h2>通用连接地址： <span style="color: yellow;">mc.luanrine.cc</span> </h2>
+        <h2>推荐地址： <span style="color: yellow;" id="recommend"></span> <span style="color: greenyellow;"><span id="best" ></span>ms</span></h2>
+        <h2>可用地址：</h2>
+        <div class="container">
+            <h3>✅合肥电信<span style="color: yellow;"> frp-bag.top:15920</span> <span style="color: greenyellow;"><span id="hf"></span>ms</span></h3>
+            <h3>✅长沙电信 <span style="color: yellow;"> frp-gym.top:50516</span> <span style="color: greenyellow;"><span id="cs"></span>ms</span></h3>
+            <h3>✅十堰多线<span style="color: yellow;"> frp-fee.top:50508</span> <span style="color: greenyellow;"><span id="sy"></span>ms</span></h3>
+            <h3>✅天津联通<span style="color: yellow;"> frp-nut.top:50804</span> <span style="color: greenyellow;"><span id="tj"></span>ms</span></h3>
+            <h3>✅宿迁电信<span style="color: yellow;"> frp-all.top:14159</span> <span style="color: greenyellow;"><span id="sq"></span>ms</span></h3>
+        </div>
+    </div>
+    <script>
+        function action(pageData) {
+            let data = JSON.parse(pageData);
+            document.getElementById("recommend").innerHTML = data.bestAddress;
+            document.getElementById("hf").innerHTML = data.ping[0].ping;
+            document.getElementById("cs").innerHTML = data.ping[1].ping;
+            document.getElementById("sy").innerHTML = data.ping[2].ping;
+            document.getElementById("tj").innerHTML = data.ping[3].ping;
+            document.getElementById("sq").innerHTML = data.ping[4].ping;
+            document.getElementById("best").innerHTML = data.bestPing;
+            document.getElementById("players").innerHTML = data.players;
+        }
+    </script>
+</body>
+
+</html>

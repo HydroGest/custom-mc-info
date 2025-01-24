@@ -6,7 +6,8 @@
   "typings": "lib/index.d.ts",
   "files": [
     "lib",
-    "dist"
+    "dist",
+    "statics"
   ],
   "license": "MIT",
   "scripts": {},
@@ -19,6 +20,7 @@
     "koishi": "^4.17.9"
   },
   "dependencies": {
+    "koishi-plugin-puppeteer": "^3.9.0",
     "minecraft-server-ping": "^0.3.1"
   }
 }
