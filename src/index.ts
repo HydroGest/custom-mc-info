@@ -97,7 +97,7 @@ export function apply(ctx: Context, config: Config) {
       await page.setViewport({ width: 582, height: 300 })
       await page.goto(`file:///${resolve(__dirname, "../statics/template.html")}`)
       await page.waitForNetworkIdle()
-      await page.evaluate(`action(${JSON.stringify(pageData)})`)
+      await page.evaluate(`action(\`${JSON.stringify(pageData)}\`)`)
       
       const element = await page.$("body")
       return segment.image(
