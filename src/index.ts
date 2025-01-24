@@ -48,7 +48,7 @@ export function apply(ctx: Context, config: Config) {
 
       let lowestLatency = Infinity;
       let lowestLatencyDomain = '';
-
+      pageData = [];
       // 遍历所有域名，测试它们的延迟
       for (const domain of domains) {
           const [address, portStr] = domain.split(':');
@@ -112,7 +112,7 @@ export function apply(ctx: Context, config: Config) {
                 }), "image/png")
             );
           }
-       
+          
           return returnMsg;
       });
 }
