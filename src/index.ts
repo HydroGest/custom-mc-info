@@ -130,4 +130,49 @@ export function apply(ctx: Context, config: Config) {
         return '服务器状态获取失败'
       }
     })
+
+    ctx.command('map <x> <z> [zoom]')
+  .action(async ({ session }, x, z, zoom = 460) => {
+    try {
+      // 参数验证
+      const numX = parseFloat(x)
+      const numZ = parseFloat(z)
+      const numZoom = parseFloat(zoom.toString())
+      
+      if (isNaN(numX) || isNaN(numZ) || isNaN(numZoom)) {
+        return '参数格式错误，请提供有效的数字坐标和缩放级别'
+      }
+
+      // 构建地图 URL
+      const mapUrl = `http://map.lunarine.cc/#world:${numX}:0:${numZ}:${numZoom}:0:0:0:0:perspective`
+
+      let page: Page
+      try {
+        page = await ctx.puppeteer.page()
+        // 设置适合地图的视口大小
+        await page.setViewport({ width: 1280, height: 720 })
+        await page.goto(mapUrl, { 
+          waitUntil: 'networkidle2',
+          timeout: config.timeout 
+        })
+
+        // 等待地图容器加载（根据目标页面结构调整选择器）
+        await page.waitForSelector('#map', { timeout: config.timeout })
+        
+        // 截图地图区域（根据实际页面结构调整选择器）
+        const mapElement = await page.$('body')
+        const screenshot = await mapElement.screenshot({ 
+          encoding: 'binary',
+          type: 'png'
+        })
+
+        return segment.image(screenshot, 'image/png')
+      } finally {
+        if (page && !page.isClosed()) await page.close()
+      }
+    } catch (error) {
+      ctx.logger.error('地图生成失败:', error)
+      return '地图生成失败，请稍后再试'
+    }
+  })
 }
