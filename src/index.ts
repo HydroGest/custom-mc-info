@@ -156,10 +156,8 @@ export function apply(ctx: Context, config: Config) {
           timeout: config.timeout 
         })
 
-        // 等待地图容器加载（根据目标页面结构调整选择器）
-        await page.waitForSelector('#map-container', { timeout: config.timeout })
+        await page.waitForTimeout(5000);
         
-        // 截图地图区域（根据实际页面结构调整选择器）
         const mapElement = await page.$('body')
         const screenshot = await mapElement.screenshot({ 
           encoding: 'binary',
