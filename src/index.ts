@@ -131,7 +131,7 @@ export function apply(ctx: Context, config: Config) {
       }
     })
 
-    ctx.command('map <x> <z> [zoom]')
+    ctx.command('map <x:string> <z:string> [zoom:number]')
   .action(async ({ session }, x, z, zoom = 460) => {
     try {
       // 参数验证
