@@ -180,7 +180,7 @@ async function generateMap(x: number, z: number, zoom: number): Promise<segment>
   try {
     page = await ctx.puppeteer.page();
     await page.setViewport({ width: 1280, height: 720 });
-    await page.goto(`https://map.lunarine.cc/#world:${x}:0:${z}:${zoom}:0:0:0:0:perspective`);
+    await page.goto(`https://map.lunarine.cc/#world:${x}:0:${z}:${zoom}:0:0:0:0:flat`);
     await page.waitForNetworkIdle();
     await new Promise(r => setTimeout(r, 6000));
     const mapElement = await page.$('#map-container');
