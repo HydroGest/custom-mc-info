@@ -131,49 +131,66 @@ export function apply(ctx: Context, config: Config) {
       }
     })
 
-    ctx.command('map <x:string> <z:string> [zoom:number]')
-  .action(async ({ session }, x, z, zoom = 460) => {
+    ctx.command('map <target> [zoom:number]')
+  .action(async ({ session }, target, zoom = 460) => {
     try {
-      // 参数验证
-      const numX = parseFloat(x)
-      const numZ = parseFloat(z)
-      const numZoom = parseFloat(zoom.toString())
-      
-      if (isNaN(numX) || isNaN(numZ) || isNaN(numZoom)) {
-        return '参数格式错误，请提供有效的数字坐标和缩放级别'
+      let numX: number, numZ: number;
+
+      // 尝试解析坐标
+      const coords = target.split(/[, ]+/);
+      if (coords.length === 2) {
+        numX = parseFloat(coords[0]);
+        numZ = parseFloat(coords[1]);
+        if (isNaN(numX) || isNaN(numZ)) {
+          // 视为玩家名称模式
+          return handlePlayerMode(target, zoom);
+        }
+      } else {
+        // 视为玩家名称模式
+        return handlePlayerMode(target, zoom);
       }
 
-      // 构建地图 URL
-      const mapUrl = `https://map.lunarine.cc/#world:${numX}:0:${numZ}:${numZoom}:0:0:0:0:perspective`
-
-      let page: Page
-      try {
-        page = await ctx.puppeteer.page()
-        // 设置适合地图的视口大小
-        await page.setViewport({ width: 1280, height: 720 })
-          await page.goto(mapUrl)
-          await page.waitForNetworkIdle()
-          console.log("Page loaded");
-          //, {
-        //   waitUntil: 'networkidle2',
-        //   timeout: config.timeout 
-        // })
-
-          await new Promise(r => setTimeout(r, 6000));        
-          console.log("waited for 5s");
-        const mapElement = await page.$('#map-container')
-        const screenshot = await mapElement.screenshot({ 
-          encoding: 'binary',
-          type: 'png'
-        })
-
-        return segment.image(screenshot, 'image/png')
-      } finally {
-        if (page && !page.isClosed()) await page.close()
-      }
+      // 坐标模式生成地图
+      return generateMap(numX, numZ, zoom);
     } catch (error) {
-      ctx.logger.error('地图生成失败:', error)
-      return '地图生成失败，请稍后再试'
+      ctx.logger.error('地图生成失败:', error);
+      return '地图生成失败，请稍后再试';
     }
-  })
+  });
+
+async function handlePlayerMode(playerName: string, zoom: number): Promise<string | segment> {
+  const coords = await getPlayerCoords(playerName);
+  if (!coords) return '玩家未找到或不在线';
+  return generateMap(coords.x, coords.z, zoom);
+}
+
+async function getPlayerCoords(name: string): Promise<{ x: number, z: number } | null> {
+  try {
+    const response = await ctx.http.get('https://map.lunarine.cc/maps/world/live/players.json');
+    const player = response.players.find(p => p.name === name);
+    return player ? { x: player.position.x, z: player.position.z } : null;
+  } catch (error) {
+    ctx.logger.error('获取玩家坐标失败:', error);
+    return null;
+  }
+}
+
+async function generateMap(x: number, z: number, zoom: number): Promise<segment> {
+  let page: Page;
+  try {
+    page = await ctx.puppeteer.page();
+    await page.setViewport({ width: 1280, height: 720 });
+    await page.goto(`https://map.lunarine.cc/#world:${x}:0:${z}:${zoom}:0:0:0:0:perspective`);
+    await page.waitForNetworkIdle();
+    await new Promise(r => setTimeout(r, 6000));
+    const mapElement = await page.$('#map-container');
+    const screenshot = await mapElement.screenshot({ encoding: 'binary', type: 'png' });
+    return segment.image(screenshot, 'image/png');
+  } catch (error) {
+    ctx.logger.error('地图截图失败:', error);
+    throw error;
+  } finally {
+    if (page && !page.isClosed()) await page.close();
+  }
+          }
 }
