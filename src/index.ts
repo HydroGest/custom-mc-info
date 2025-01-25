@@ -144,20 +144,24 @@ export function apply(ctx: Context, config: Config) {
       }
 
       // 构建地图 URL
-      const mapUrl = `http://map.lunarine.cc/#world:${numX}:0:${numZ}:${numZoom}:0:0:0:0:perspective`
+      const mapUrl = `https://map.lunarine.cc/#world:${numX}:0:${numZ}:${numZoom}:0:0:0:0:perspective`
 
       let page: Page
       try {
         page = await ctx.puppeteer.page()
         // 设置适合地图的视口大小
         await page.setViewport({ width: 1280, height: 720 })
-        await page.goto(mapUrl, { 
-          waitUntil: 'networkidle2',
-          timeout: config.timeout 
-        })
+          await page.goto(mapUrl)
+          await page.waitForNetworkIdle()
+          console.log("Page loaded");
+          //, {
+        //   waitUntil: 'networkidle2',
+        //   timeout: config.timeout 
+        // })
 
-        await new Promise(r => setTimeout(r, 5000));        
-        const mapElement = await page.$('body')
+          await new Promise(r => setTimeout(r, 6000));        
+          console.log("waited for 5s");
+        const mapElement = await page.$('#map-container')
         const screenshot = await mapElement.screenshot({ 
           encoding: 'binary',
           type: 'png'
