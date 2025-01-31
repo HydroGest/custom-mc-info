@@ -19,7 +19,6 @@ export const Config: Schema<Config> = Schema.object({
   main_address: Schema.string().default("100.121.162.102:25565"),
   sub_address: Schema.array(Schema.string()).default([
     'frp-bag.top:15920',
-    'frp-gym.top:50516',
     'frp-fee.top:50508',
     'frp-nut.top:50804',
     'frp-all.top:14159'

@@ -36,7 +36,6 @@
         <h2>可用地址：</h2>
         <div class="container">
             <h3>✅合肥电信<span style="color: yellow;"> frp-bag.top:15920</span> <span style="color: greenyellow;"><span id="hf"></span>ms</span></h3>
-            <h3>✅长沙电信 <span style="color: yellow;"> frp-gym.top:50516</span> <span style="color: greenyellow;"><span id="cs"></span>ms</span></h3>
             <h3>✅十堰多线<span style="color: yellow;"> frp-fee.top:50508</span> <span style="color: greenyellow;"><span id="sy"></span>ms</span></h3>
             <h3>✅天津联通<span style="color: yellow;"> frp-nut.top:50804</span> <span style="color: greenyellow;"><span id="tj"></span>ms</span></h3>
             <h3>✅宿迁电信<span style="color: yellow;"> frp-all.top:14159</span> <span style="color: greenyellow;"><span id="sq"></span>ms</span></h3>
@@ -47,7 +46,6 @@
             let data = JSON.parse(pageData);
             document.getElementById("recommend").innerHTML = data.bestAddress;
             document.getElementById("hf").innerHTML = data.ping[0].ping;
-            document.getElementById("cs").innerHTML = data.ping[1].ping;
             document.getElementById("sy").innerHTML = data.ping[2].ping;
             document.getElementById("tj").innerHTML = data.ping[3].ping;
             document.getElementById("sq").innerHTML = data.ping[4].ping;
