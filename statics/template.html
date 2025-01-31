@@ -46,9 +46,9 @@
             let data = JSON.parse(pageData);
             document.getElementById("recommend").innerHTML = data.bestAddress;
             document.getElementById("hf").innerHTML = data.ping[0].ping;
-            document.getElementById("sy").innerHTML = data.ping[2].ping;
-            document.getElementById("tj").innerHTML = data.ping[3].ping;
-            document.getElementById("sq").innerHTML = data.ping[4].ping;
+            document.getElementById("sy").innerHTML = data.ping[1].ping;
+            document.getElementById("tj").innerHTML = data.ping[2].ping;
+            document.getElementById("sq").innerHTML = data.ping[3].ping;
             document.getElementById("best").innerHTML = data.bestPing;
             document.getElementById("players").innerHTML = data.players;
         }
